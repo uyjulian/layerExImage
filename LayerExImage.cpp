@@ -10,7 +10,6 @@
  * CxImage version 7.0.2 07/Feb/2011
  */
 
-#include <windows.h>
 #include <math.h>
 #include <algorithm>
 #include "LayerExImage.h"

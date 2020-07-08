@@ -1,7 +1,16 @@
 #ifndef __LayerExImage__
 #define __LayerExImage__
 
-#include "../layerExDraw/LayerExBase.hpp"
+#include "../layerExDraw/layerExBase.hpp"
+
+#define BYTE tjs_uint8
+typedef struct tagRGBQUAD {
+	BYTE rgbBlue;
+	BYTE rgbGreen;
+	BYTE rgbRed;
+	BYTE rgbReserved;
+} RGBQUAD;
+#define WORD tjs_uint16
 
 /**
  * レイヤ拡張 イメージ操作用ネイティブインスタンス
