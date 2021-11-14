@@ -1,7 +1,7 @@
 #ifndef __LayerExImage__
 #define __LayerExImage__
 
-#include "../layerExDraw/LayerExBase.hpp"
+#include "layerExBase.hpp"
 
 /**
  * レイヤ拡張 イメージ操作用ネイティブインスタンス
