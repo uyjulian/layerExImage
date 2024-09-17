@@ -10,7 +10,23 @@
  * CxImage version 7.0.2 07/Feb/2011
  */
 
+#ifndef NO_V2LINK
 #include <windows.h>
+#endif
+
+#ifndef _WIN32
+typedef unsigned char BYTE;
+typedef unsigned short WORD;
+
+typedef struct tagRGBQUAD {
+  BYTE rgbBlue;
+  BYTE rgbGreen;
+  BYTE rgbRed;
+  BYTE rgbReserved;
+} RGBQUAD;
+#endif
+
+#include <algorithm>
 #include <math.h>
 #include "LayerExImage.h"
 
@@ -18,7 +34,7 @@ void
 layerExImage::reset()
 {
 	layerExBase::reset();
-	// ƒoƒbƒtƒ@ˆÊ’u‚ğƒNƒŠƒbƒsƒ“ƒO‚É‚ ‚í‚¹‚Ä•ÏX‚·‚é
+	// ãƒãƒƒãƒ•ã‚¡ä½ç½®ã‚’ã‚¯ãƒªãƒƒãƒ”ãƒ³ã‚°ã«ã‚ã‚ã›ã¦å¤‰æ›´ã™ã‚‹
 	_buffer += _clipTop * _pitch + _clipLeft * 4;
 	_width  = _clipWidth;
 	_height = _clipHeight;
@@ -31,19 +47,19 @@ layerExImage::lut(BYTE* pLut)
 	for (int i=0; i < _height ; i++){
 		BYTE *p = src;
 		for (int j=0; j< _width; j++) {
-			*p++ = pLut[*p]; // B
-			*p++ = pLut[*p]; // G
-			*p++ = pLut[*p]; // R
-			p++;             // A
+			*p = pLut[*p]; p++; // B
+			*p = pLut[*p]; p++; // G
+			*p = pLut[*p]; p++; // R
+			p++;                // A
 		}
 		src += _pitch;
 	}
 }
 
 /**
- * –¾“x‚ÆƒRƒ“ƒgƒ‰ƒXƒg
- * @param brightness –¾“x -255 ` 255, •‰”‚Ìê‡‚ÍˆÃ‚­‚È‚é
- * @param contrast ƒRƒ“ƒgƒ‰ƒXƒg -100 `100, 0 ‚Ìê‡•Ï‰»‚µ‚È‚¢
+ * æ˜åº¦ã¨ã‚³ãƒ³ãƒˆãƒ©ã‚¹ãƒˆ
+ * @param brightness æ˜åº¦ -255 ï½ 255, è² æ•°ã®å ´åˆã¯æš—ããªã‚‹
+ * @param contrast ã‚³ãƒ³ãƒˆãƒ©ã‚¹ãƒˆ -100 ï½100, 0 ã®å ´åˆå¤‰åŒ–ã—ãªã„
  */
 void
 layerExImage::light(int brightness, int contrast)
@@ -52,7 +68,7 @@ layerExImage::light(int brightness, int contrast)
 	brightness +=128;
 	BYTE cTable[256];
 	for (int i=0;i<256;i++)	{
-		cTable[i] = (BYTE)max(0,min(255,(int)((i-128)*c + brightness)));
+		cTable[i] = (BYTE)std::max(0,std::min(255,(int)((i-128)*c + brightness)));
 	}
 	lut(cTable);
 	redraw();
@@ -82,8 +98,8 @@ RGBtoHSL(RGBQUAD lRGBColor)
 	G = lRGBColor.rgbGreen;
 	B = lRGBColor.rgbBlue;
 
-	cMax = max( max(R,G), B);	/* calculate lightness */
-	cMin = min( min(R,G), B);
+	cMax = std::max( std::max(R,G), B);	/* calculate lightness */
+	cMin = std::min( std::min(R,G), B);
 	L = (BYTE)((((cMax+cMin)*HSLMAX)+RGBMAX)/(2*RGBMAX));
 
 	if (cMax==cMin){			/* r=g=b --> achromatic case */
@@ -166,10 +182,10 @@ HSLtoRGB(RGBQUAD lHSLColor)
 }
 
 /**
- * F‘Š‚ÆÊ“x
- * @param hue F‘Š
- * @param sat Ê“x
- * @param blend ƒuƒŒƒ“ƒh 0 (Œø‰Ê‚È‚µ) ` 1 (full effect)
+ * è‰²ç›¸ã¨å½©åº¦
+ * @param hue è‰²ç›¸
+ * @param sat å½©åº¦
+ * @param blend ãƒ–ãƒ¬ãƒ³ãƒ‰ 0 (åŠ¹æœãªã—) ï½ 1 (full effect)
  */
 void
 layerExImage::colorize(int hue, int sat, double blend)
@@ -239,14 +255,14 @@ hue2rgb(double n1,double n2, double hue)
 static void
 modulate(int &b, int &g, int &r, double h, double s, double l)
 {
-	// RGB³‹K‰»
+	// RGBæ­£è¦åŒ–
 	double red   = r / 255.0;
 	double green = g / 255.0;
 	double blue  = b / 255.0;
 
-	// RGB‚©‚çHSL‚É•ÏŠ·
-	double cMax = max(max(red,green), blue);
-	double cMin = min(min(red,green), blue);
+	// RGBã‹ã‚‰HSLã«å¤‰æ›
+	double cMax = std::max(std::max(red,green), blue);
+	double cMin = std::min(std::min(red,green), blue);
 	double delta = cMax - cMin;
 	double add   = cMax + cMin;
 	double luminance = add/2.0;
@@ -270,8 +286,8 @@ modulate(int &b, int &g, int &r, double h, double s, double l)
 		}
 		hue /= 6.0;
 	}
-	// F•ÏŠ·ˆ—
-	// %ˆ—‚Í‚±‚ê‚Å‚¢‚¢‚ñ‚¾‚ë‚¤‚©c
+	// è‰²å¤‰æ›å‡¦ç†
+	// %å‡¦ç†ã¯ã“ã‚Œã§ã„ã„ã‚“ã ã‚ã†ã‹â€¦
 	hue += h;
 	while (hue < 0) { hue += 1.0; };
 	while (hue > 1.0) { hue -= 1.0; };
@@ -286,7 +302,7 @@ modulate(int &b, int &g, int &r, double h, double s, double l)
 		luminance += luminance * l;
 	}
 
-	// HSL‚©‚çRGB‚É–ß‚·
+	// HSLã‹ã‚‰RGBã«æˆ»ã™
 	if (saturation == 0.0) {
 		r = g = b = (int)(luminance * 255.0);
 	} else {
@@ -305,10 +321,10 @@ modulate(int &b, int &g, int &r, double h, double s, double l)
 
 
 /**
- * F‘Š‚ÆÊ“x‚Æ‹P“x’²®
- * @param hue F‘Š -180`180 (“x)
- * @param saturation Ê“x -100`100 (%)
- * @param luminance ‹P“x -100`100 (%)
+ * è‰²ç›¸ã¨å½©åº¦ã¨è¼åº¦èª¿æ•´
+ * @param hue è‰²ç›¸ -180ï½180 (åº¦)
+ * @param saturation å½©åº¦ -100ï½100 (%)
+ * @param luminance è¼åº¦ -100ï½100 (%)
  */
 void
 layerExImage::modulate(int hue, int saturation, int luminance)
@@ -336,8 +352,8 @@ layerExImage::modulate(int hue, int saturation, int luminance)
 }
 
 /**
- * ƒmƒCƒY’Ç‰Á
- * @param level ƒmƒCƒYƒŒƒxƒ‹ 0 (no noise) ` 255 (lot of noise).
+ * ãƒã‚¤ã‚ºè¿½åŠ 
+ * @param level ãƒã‚¤ã‚ºãƒ¬ãƒ™ãƒ« 0 (no noise) ï½ 255 (lot of noise).
  */
 void
 layerExImage::noise(int level)
@@ -347,11 +363,11 @@ layerExImage::noise(int level)
 		BYTE *p = src;
 		for (int x=0; x<_width; x++){
 			int n = (int)((rand()/(float)RAND_MAX - 0.5)*level);
-			*p++ = (BYTE)max(0,min(255,(int)(*p + n)));
+			*p = (BYTE)std::max(0,std::min(255,(int)(*p + n))); p++;
 			n = (int)((rand()/(float)RAND_MAX - 0.5)*level);
-			*p++ = (BYTE)max(0,min(255,(int)(*p + n)));
+			*p = (BYTE)std::max(0,std::min(255,(int)(*p + n))); p++;
 			n = (int)((rand()/(float)RAND_MAX - 0.5)*level);
-			*p++ = (BYTE)max(0,min(255,(int)(*p + n)));
+			*p = (BYTE)std::max(0,std::min(255,(int)(*p + n))); p++;
 			p++;
 		}
 		src += _pitch;
@@ -360,7 +376,7 @@ layerExImage::noise(int level)
 }
 
 /**
- * ƒmƒCƒY¶¬iŒ³‚Ì‰æ‘œ‚ğ–³‹‚µ‚ÄƒOƒŒ[ƒXƒP[ƒ‹‚ÌƒzƒƒCƒgƒmƒCƒY‚ğ•`‰æ^ƒ¿î•ñ‚ÍˆÛj
+ * ãƒã‚¤ã‚ºç”Ÿæˆï¼ˆå…ƒã®ç”»åƒã‚’ç„¡è¦–ã—ã¦ã‚°ãƒ¬ãƒ¼ã‚¹ã‚±ãƒ¼ãƒ«ã®ãƒ›ãƒ¯ã‚¤ãƒˆãƒã‚¤ã‚ºã‚’æç”»ï¼Î±æƒ…å ±ã¯ç¶­æŒï¼‰
  */
 void
 layerExImage::generateWhiteNoise()
@@ -378,7 +394,7 @@ layerExImage::generateWhiteNoise()
 }
 
 
-typedef _int32 int32_t;
+typedef int32_t int32_t;
 typedef unsigned char uint8_t;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -603,7 +619,7 @@ blur_line (float *ctable, float *cmatrix, int32_t cmatrix_length, uint8_t* cur_c
     }
 }
 
-// src -> dest ‚ÉƒJƒ‰ƒ€î•ñ‚ğæ“¾
+// src -> dest ã«ã‚«ãƒ©ãƒ æƒ…å ±ã‚’å–å¾—
 static void
 getCol(BYTE *src, BYTE *dest, int height, int pitch)
 {
@@ -617,7 +633,7 @@ getCol(BYTE *src, BYTE *dest, int height, int pitch)
 	}
 }
 
-// dest -> srct ‚ÉƒJƒ‰ƒ€î•ñ‚ğ•œ‹A
+// dest -> srct ã«ã‚«ãƒ©ãƒ æƒ…å ±ã‚’å¾©å¸°
 static void
 setCol(BYTE *src, BYTE *dest, int height, int pitch)
 {
