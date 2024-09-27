@@ -1,4 +1,4 @@
-#include "ncbind/ncbind.hpp"
+#include "ncbind.hpp"
 
 static const char *copyright = 
 "----- CxImage Copyright START -----\n"

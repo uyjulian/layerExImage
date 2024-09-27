@@ -11,6 +11,7 @@
  */
 
 #ifndef NO_V2LINK
+#define NOMINMAX
 #include <windows.h>
 #endif
 
