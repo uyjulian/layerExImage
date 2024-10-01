@@ -1,4 +1,4 @@
-#include "ncbind/ncbind.hpp"
+#include "ncbind.hpp"
 
 static const char *copyright = 
 "----- CxImage Copyright START -----\n"
@@ -7,6 +7,10 @@ static const char *copyright =
 "Original CImage and CImageIterator implementation are:\n"
 "Copyright (C) 1995, Alejandro Aguilar Sierra (asierra(at)servidor(dot)unam(dot)mx)\n"
 "----- CxImage Copyright END -----\n";
+
+typedef unsigned char BYTE;
+typedef unsigned short WORD;
+
 
 #include "LayerExImage.h"
 

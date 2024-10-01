@@ -10,9 +10,25 @@
  * CxImage version 7.0.2 07/Feb/2011
  */
 
+#ifndef NO_V2LINK
+#define NOMINMAX
 #include <windows.h>
-#include <math.h>
+#endif
+
+#ifndef _WIN32
+typedef unsigned char BYTE;
+typedef unsigned short WORD;
+
+typedef struct tagRGBQUAD {
+  BYTE rgbBlue;
+  BYTE rgbGreen;
+  BYTE rgbRed;
+  BYTE rgbReserved;
+} RGBQUAD;
+#endif
+
 #include <algorithm>
+#include <math.h>
 #include "LayerExImage.h"
 
 void
@@ -32,10 +48,10 @@ layerExImage::lut(BYTE* pLut)
 	for (int i=0; i < _height ; i++){
 		BYTE *p = src;
 		for (int j=0; j< _width; j++) {
-			*p++ = pLut[*p]; // B
-			*p++ = pLut[*p]; // G
-			*p++ = pLut[*p]; // R
-			p++;             // A
+			*p = pLut[*p]; p++; // B
+			*p = pLut[*p]; p++; // G
+			*p = pLut[*p]; p++; // R
+			p++;                // A
 		}
 		src += _pitch;
 	}
@@ -43,8 +59,8 @@ layerExImage::lut(BYTE* pLut)
 
 /**
  * 明度とコントラスト
- * @param brightness 明度 -255 〜 255, 負数の場合は暗くなる
- * @param contrast コントラスト -100 〜100, 0 の場合変化しない
+ * @param brightness 明度 -255 ～ 255, 負数の場合は暗くなる
+ * @param contrast コントラスト -100 ～100, 0 の場合変化しない
  */
 void
 layerExImage::light(int brightness, int contrast)
@@ -170,7 +186,7 @@ HSLtoRGB(RGBQUAD lHSLColor)
  * 色相と彩度
  * @param hue 色相
  * @param sat 彩度
- * @param blend ブレンド 0 (効果なし) 〜 1 (full effect)
+ * @param blend ブレンド 0 (効果なし) ～ 1 (full effect)
  */
 void
 layerExImage::colorize(int hue, int sat, double blend)
@@ -307,9 +323,9 @@ modulate(int &b, int &g, int &r, double h, double s, double l)
 
 /**
  * 色相と彩度と輝度調整
- * @param hue 色相 -180〜180 (度)
- * @param saturation 彩度 -100〜100 (%)
- * @param luminance 輝度 -100〜100 (%)
+ * @param hue 色相 -180～180 (度)
+ * @param saturation 彩度 -100～100 (%)
+ * @param luminance 輝度 -100～100 (%)
  */
 void
 layerExImage::modulate(int hue, int saturation, int luminance)
@@ -338,7 +354,7 @@ layerExImage::modulate(int hue, int saturation, int luminance)
 
 /**
  * ノイズ追加
- * @param level ノイズレベル 0 (no noise) 〜 255 (lot of noise).
+ * @param level ノイズレベル 0 (no noise) ～ 255 (lot of noise).
  */
 void
 layerExImage::noise(int level)
@@ -348,11 +364,11 @@ layerExImage::noise(int level)
 		BYTE *p = src;
 		for (int x=0; x<_width; x++){
 			int n = (int)((rand()/(float)RAND_MAX - 0.5)*level);
-			*p++ = (BYTE)std::max(0,std::min(255,(int)(*p + n)));
+			*p = (BYTE)std::max(0,std::min(255,(int)(*p + n))); p++;
 			n = (int)((rand()/(float)RAND_MAX - 0.5)*level);
-			*p++ = (BYTE)std::max(0,std::min(255,(int)(*p + n)));
+			*p = (BYTE)std::max(0,std::min(255,(int)(*p + n))); p++;
 			n = (int)((rand()/(float)RAND_MAX - 0.5)*level);
-			*p++ = (BYTE)std::max(0,std::min(255,(int)(*p + n)));
+			*p = (BYTE)std::max(0,std::min(255,(int)(*p + n))); p++;
 			p++;
 		}
 		src += _pitch;
@@ -379,7 +395,12 @@ layerExImage::generateWhiteNoise()
 }
 
 
+#if 1
 #include <stdint.h>
+#else
+typedef int32_t int32_t;
+typedef unsigned char uint8_t;
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 /** 
