@@ -20,6 +20,8 @@ typedef struct tagRGBQUAD {
   BYTE rgbRed;
   BYTE rgbReserved;
 } RGBQUAD;
+#else
+#include <windows.h>
 #endif
 
 #include <algorithm>
